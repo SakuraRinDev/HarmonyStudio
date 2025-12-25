@@ -70,12 +70,13 @@ const App: React.FC = () => {
   }, []);
 
   // ガイド音源のミュート状態を再生中にリアルタイム反映させるためのEffect
+  // 依存配列を最小限にし、確実にDOM要素へ反映させます
   useEffect(() => {
     const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
     if (baseAud) {
       baseAud.muted = baseTrack.isMuted;
     }
-  }, [baseTrack.isMuted]);
+  }, [baseTrack.isMuted, baseTrack.url]);
 
   const playClick = (time: number) => {
     if (!audioCtxRef.current) return;
@@ -428,6 +429,25 @@ const App: React.FC = () => {
       </div>
 
       <canvas ref={exportCanvasRef} width="1280" height="720" className="hidden" />
+
+      {/* 書き出し中のポップアップオーバーレイを復元 */}
+      {globalState === 'exporting' && (
+        <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+          <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full space-y-6">
+            <div className="relative w-20 h-20 mx-auto">
+              <div className="absolute inset-0 border-4 border-emerald-500/20 rounded-full" />
+              <div className="absolute inset-0 border-4 border-emerald-500 rounded-full border-t-transparent animate-spin" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold">書き出し中</h2>
+              <p className="text-slate-400 text-sm">
+                動画を合体しています。<br />
+                完了までブラウザを閉じないでください...
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <footer className="fixed bottom-6 left-1/2 -translate-x-1/2 w-[calc(100%-2rem)] max-w-2xl z-50">
         <div className="bg-slate-900/95 backdrop-blur-xl border border-slate-800 rounded-3xl p-4 shadow-2xl flex items-center justify-between gap-4">
