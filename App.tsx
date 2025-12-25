@@ -25,7 +25,7 @@ const App: React.FC = () => {
   const [tracks, setTracks] = useState<TrackData[]>(INITIAL_TRACKS);
   const [baseTrack, setBaseTrack] = useState<BaseTrackData>(INITIAL_BASE_TRACK);
   const [stream, setStream] = useState<MediaStream | null>(null);
-  const [globalState, setGlobalState] = useState('idle') as [RecordingState, React.Dispatch<React.SetStateAction<RecordingState>>];
+  const [globalState, setGlobalState] = useState<RecordingState>('idle');
   const [statusMessage, setStatusMessage] = useState('カメラの準備中...');
   const [playbackTime, setPlaybackTime] = useState(0); 
   const [playingTrackId, setPlayingTrackId] = useState<number | null>(null);
@@ -282,8 +282,21 @@ const App: React.FC = () => {
 
   const handleMasterExport = async () => {
     if (globalState !== 'idle') return;
+    
+    // stopAllPlaybacksを使わず、内部状態を上書きせずに停止処理
+    if (playheadIntervalRef.current) clearInterval(playheadIntervalRef.current);
+    setPlayingTrackId(null);
+    const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
+    if (baseAud) baseAud.pause();
+    tracks.forEach(track => {
+      const vid = document.getElementById(`video-track-${track.id}`) as HTMLVideoElement;
+      if (vid) vid.pause();
+    });
+    setPlaybackTime(0);
+    syncMediaToTime(0);
+
+    // 満を持して exporting にセット
     setGlobalState('exporting');
-    stopAllPlaybacks();
 
     const canvas = exportCanvasRef.current;
     if (!canvas) return;
@@ -335,7 +348,6 @@ const App: React.FC = () => {
       a.download = 'harmony-studio-export.webm';
       a.click();
       setGlobalState('idle');
-      stopAllPlaybacks();
     };
 
     recorder.start();
@@ -427,6 +439,7 @@ const App: React.FC = () => {
 
       <canvas ref={exportCanvasRef} width="1280" height="720" className="hidden" />
 
+      {/* 書き出し中のポップアップオーバーレイ */}
       {globalState === 'exporting' && (
         <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
           <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full space-y-6">
