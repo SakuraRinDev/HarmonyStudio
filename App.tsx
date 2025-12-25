@@ -69,15 +69,6 @@ const App: React.FC = () => {
     };
   }, []);
 
-  // ガイド音源のミュート状態を再生中にリアルタイム反映させるためのEffect
-  // 依存配列を最小限にし、確実にDOM要素へ反映させます
-  useEffect(() => {
-    const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
-    if (baseAud) {
-      baseAud.muted = baseTrack.isMuted;
-    }
-  }, [baseTrack.isMuted, baseTrack.url]);
-
   const playClick = (time: number) => {
     if (!audioCtxRef.current) return;
     const osc = audioCtxRef.current.createOscillator();
@@ -171,7 +162,6 @@ const App: React.FC = () => {
     if (baseTrack.url) {
       const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
       if (baseAud) {
-        baseAud.muted = baseTrack.isMuted;
         baseAud.currentTime = baseTrack.startTime + initialElapsed;
         baseAud.play().catch(() => {});
       }
@@ -290,7 +280,6 @@ const App: React.FC = () => {
     setTracks(prev => prev.map(t => t.id === id ? { ...t, isMuted: !t.isMuted } : t));
   }, []);
 
-  // 書き出し機能の実装
   const handleMasterExport = async () => {
     if (globalState !== 'idle') return;
     setGlobalState('exporting');
@@ -304,7 +293,6 @@ const App: React.FC = () => {
     if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
     const destination = audioCtxRef.current.createMediaStreamDestination();
     
-    // ガイド音声のオーディオ接続
     if (baseTrack.url && baseTrack.includeInExport) {
       const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
       let source = sourceNodesRef.current.get('base');
@@ -319,7 +307,6 @@ const App: React.FC = () => {
       gain.connect(destination);
     }
 
-    // 各トラックのオーディオ接続
     tracks.forEach(track => {
       if (!track.url) return;
       const vid = document.getElementById(`video-track-${track.id}`) as HTMLVideoElement;
@@ -420,7 +407,7 @@ const App: React.FC = () => {
         </div>
       </header>
 
-      <audio id="base-audio-element" src={baseTrack.url || undefined} className="hidden" />
+      <audio id="base-audio-element" src={baseTrack.url || undefined} muted={baseTrack.isMuted} className="hidden" />
 
       <main className="max-w-5xl w-full grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
         {tracks.map(track => (
@@ -440,7 +427,6 @@ const App: React.FC = () => {
 
       <canvas ref={exportCanvasRef} width="1280" height="720" className="hidden" />
 
-      {/* 書き出し中のポップアップオーバーレイを復元 */}
       {globalState === 'exporting' && (
         <div className="fixed inset-0 z-[100] bg-slate-950/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
           <div className="bg-slate-900 border border-slate-800 p-8 rounded-3xl shadow-2xl max-w-sm w-full space-y-6">
