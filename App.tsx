@@ -69,6 +69,14 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // ガイド音源のミュート状態を再生中にリアルタイム反映させるためのEffect
+  useEffect(() => {
+    const baseAud = document.getElementById('base-audio-element') as HTMLAudioElement;
+    if (baseAud) {
+      baseAud.muted = baseTrack.isMuted;
+    }
+  }, [baseTrack.isMuted]);
+
   const playClick = (time: number) => {
     if (!audioCtxRef.current) return;
     const osc = audioCtxRef.current.createOscillator();
