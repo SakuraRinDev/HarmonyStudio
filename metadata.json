@@ -1,0 +1,8 @@
+{
+  "name": "Harmony Studio",
+  "description": "A professional-grade multi-track video harmony recorder. Record up to four parts individually while listening to your previous takes to create perfect vocal harmonies.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
