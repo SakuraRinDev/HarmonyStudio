@@ -173,7 +173,7 @@ const App: React.FC = () => {
       if (baseAud) {
         baseAud.muted = baseTrack.isMuted;
         baseAud.currentTime = baseTrack.startTime + initialElapsed;
-        baseAud.play().catch(console.error);
+        baseAud.play().catch(() => {});
       }
     }
     tracks.forEach(track => {
@@ -183,11 +183,15 @@ const App: React.FC = () => {
           vid.muted = track.isMuted;
           const target = initialElapsed - (track.offset / 1000);
           vid.currentTime = Math.max(0, target);
-          if (target >= 0 && target < track.duration) vid.play().catch(console.error);
-          else if (target < 0) {
+          if (target >= 0 && target < track.duration) {
+            vid.play().catch(() => {});
+          } else if (target < 0) {
              setTimeout(() => {
                 const nowElapsed = (performance.now() - startTimeRef.current) / 1000;
-                if (nowElapsed >= (track.offset / 1000) && vid.paused) { vid.currentTime = 0; vid.play().catch(() => {}); }
+                if (nowElapsed >= (track.offset / 1000) && vid.paused) {
+                  vid.currentTime = 0;
+                  vid.play().catch(() => {});
+                }
              }, -target * 1000);
           }
         }
@@ -252,7 +256,13 @@ const App: React.FC = () => {
     else {
       stopAllPlaybacks();
       const vid = document.getElementById(`video-track-${id}`) as HTMLVideoElement;
-      if (vid) { setPlayingTrackId(id); vid.currentTime = 0; vid.play(); startPlayheadTimer(0); vid.onended = () => stopAllPlaybacks(); }
+      if (vid) {
+        setPlayingTrackId(id);
+        vid.currentTime = 0;
+        vid.play().catch(() => {});
+        startPlayheadTimer(0);
+        vid.onended = () => stopAllPlaybacks();
+      }
     }
   };
 

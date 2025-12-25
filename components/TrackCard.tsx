@@ -35,22 +35,31 @@ const TrackCard: React.FC<TrackCardProps> = ({
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
+
     if (track.isRecording && stream) {
       if (video.srcObject !== stream) {
+        // 新しいソースを設定する前に古いソースをクリア
+        video.src = "";
         video.srcObject = stream;
         video.muted = true;
-        video.play().catch(console.error);
+        video.play().catch(() => {
+          // ユーザー操作やソース変更による中断は無視してよい
+        });
       }
     } else if (track.url) {
-      if (video.srcObject) video.srcObject = null;
+      if (video.srcObject) {
+        video.srcObject = null;
+      }
       if (currentUrlRef.current !== track.url) {
         video.src = track.url;
         currentUrlRef.current = track.url;
       }
       video.muted = track.isMuted;
     } else {
-      video.srcObject = null;
-      video.src = "";
+      if (video.srcObject) video.srcObject = null;
+      if (video.src !== "") {
+        video.src = "";
+      }
       currentUrlRef.current = null;
     }
   }, [track.isRecording, track.url, stream, track.isMuted]);
@@ -97,7 +106,7 @@ const TrackCard: React.FC<TrackCardProps> = ({
         ) : (
           <div className="flex items-center gap-2">
             <button onClick={() => onToggleMute(track.id)} className={`p-2 rounded-full ${track.isMuted ? 'bg-orange-600 text-white' : 'bg-slate-700 text-slate-300'}`} title="ミュート">
-              {track.isMuted ? <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" /></svg> : <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" /></svg>}
+              {track.isMuted ? <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM12.293 7.293a1 1 0 011.414 0L15 8.586l1.293-1.293a1 1 0 111.414 1.414L16.414 10l1.293 1.293a1 1 0 01-1.414 1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L15 11.414l-1.293 1.293a1 1 0 01-1.414-1.414L13.586 10l-1.293-1.293a1 1 0 010-1.414z" /></svg> : <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9.383 3.076A1 1 0 0110 4v12a1 1 0 01-1.707.707L4.586 13H2a1 1 0 01-1-1V8a1 1 0 011-1h2.586l3.707-3.707a1 1 0 011.09-.217zM14.657 2.929a1 1 0 011.414 0A9.972 9.972 0 0119 10a9.972 9.972 0 01-2.929 7.071 1 1 0 01-1.414-1.414A7.971 7.971 0 0017 10c0-2.21-.894-4.208-2.343-5.657a1 1 0 010-1.414z" /></svg>}
             </button>
             <button onClick={() => onTogglePlay(track.id)} disabled={isGlobalRecording} className={`p-2 rounded-full ${isPlayingLocally ? 'bg-emerald-600 text-white' : 'bg-slate-700 text-white'}`}>{isPlayingLocally ? <div className="w-5 h-5 flex items-center justify-center font-bold">■</div> : <div className="w-5 h-5 flex items-center justify-center translate-x-0.5">▶</div>}</button>
             <button onClick={() => onStartRecord(track.id)} disabled={isGlobalRecording} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-full text-xs font-bold text-white">録り直し</button>
